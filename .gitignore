@@ -1,0 +1,15 @@
+# 素材与产物不入库（版权 + 体积）
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.webm
+*.mp4
+assets/
+node_modules/
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+.venv/
