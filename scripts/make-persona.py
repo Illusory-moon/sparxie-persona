@@ -8,9 +8,31 @@
 import argparse
 import datetime
 import os
+import re
 import sqlite3
 import sys
 from contextlib import closing
+
+# 「我的成长记录（自动写入）」—— soul_memory 每次自动往 SOUL.md 追加的那一段 ✓。
+# 它是**记忆** ✗ 不是人格正文 ✓（而 SOUL.md 本身还挂在 extra_diaries 里 ✓ 记忆通道已经覆盖它 ✓）。
+# 2026-10-08 主人裁定 ✓：同步人格时**一律剔掉** ✗ —— 否则每同步一次，就把越攒越陈的记忆塞进人格 ✓（留尾巴 ✗）。
+AUTO_SECTION = re.compile(r'^#{0,3}\s*\**\s*我的成长记录', re.M)
+
+
+def strip_auto_memory(text):
+    """剔掉自动成长段 ✓（从该标题起 ✓ 到下一个同级 '## ' 标题或文末 ✓）。返回 (新文本, 剔掉字数) ✓。"""
+    m = AUTO_SECTION.search(text)
+    if not m:
+        return text, 0
+    head = text[:m.start()]
+    rest = text[m.start():]
+    # ⚠️ 别把**标题自己**当成「下一个小节」✗ —— 先跳过标题那一行再找 ✓
+    _nl = rest.find('\n')
+    body = rest[_nl + 1:] if _nl >= 0 else ''
+    nxt = re.search(r'^## ', body, flags=re.M)
+    tail = body[nxt.start():] if nxt else ''
+    out = (head.rstrip() + (('\n\n' + tail) if tail else '\n')).rstrip() + '\n'
+    return out, len(text) - len(out)
 
 
 def main():
@@ -26,6 +48,9 @@ def main():
         print('找不到人格文件:', md); sys.exit(1)
     with open(md, encoding='utf-8') as source:
         prompt = source.read()
+    prompt, dropped = strip_auto_memory(prompt)
+    if dropped:
+        print('已剔掉「我的成长记录（自动写入）」%d 字 ✓（那是记忆 ✓ 走记忆通道 ✓ 不进人格）' % dropped)
 
     if not os.path.exists(args.db):
         print('找不到数据库:', args.db); sys.exit(1)
