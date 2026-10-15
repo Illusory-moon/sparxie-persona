@@ -17,7 +17,8 @@
 | `docs/评判标准.md` | 怎么判断一条回复「像不像火花」 |
 | `docs/设计说明.md` | 为什么这么写（含踩过的坑） |
 | `knowledge/` | **角色本来就知道的东西**（游戏设定 + 她的人际关系 + 她自己的片子）|
-| `scripts/make-persona.py` | 从语料重新生成人格的脚本 |
+| `scripts/make-persona.py` | 从语料重新生成人格的脚本（写进 personas 表）|
+| `scripts/sync-knowledge.sh` | **把 `knowledge/` 同步到部署机**，并自动补齐 config 里的条目 |
 
 > ⚠️ **语料有两个数，别搞混**：**64** = 本仓库发布的**精选样本** ✓ ·
 > **338** = **全量台词**（作者本地保留，用于深挖核对）✓
@@ -74,8 +75,18 @@
 # 1) 把人格写进 AstrBot 的 personas 表
 python scripts/make-persona.py --db /opt/astrbot/data/data_v4.db
 
-# 2) 在 AstrBot 里为你的 bot 绑定该人格
+# 2) 把知识库同步到部署机，并补齐 config.yaml 里的 knowledge 条目
+#    （文件同步 + 条目补齐 + 端到端检查，三件事一起做）
+scripts/sync-knowledge.sh --host <你的部署机> --remote --yes
+#    加 --restart 会顺手重启容器（重启后记得两个 bot 都查）
+
+# 3) 在 AstrBot 里为你的 bot 绑定该人格
 ```
+
+> ⚠️ **知识库最容易出的错是"文件在、但查不到"** —— 因为 `knowledge/*.md` 要同步到 `data/`，
+> **同时**还要在 `config.yaml` 的 `knowledge:` 段里有一条对应条目。漏了后者不会报错，
+> 只是她永远查不到那份资料。`sync-knowledge.sh` 就是为这个坑写的：
+> 它会补齐条目、**校验 YAML 能解析、并确认注释一行没少**，最后逐条检查文件是否真的存在。
 
 ### DSH
 
