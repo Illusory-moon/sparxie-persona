@@ -61,7 +61,7 @@ class MakePersonaTest(unittest.TestCase):
                 self.assertEqual(con.execute("SELECT system_prompt FROM personas").fetchone()[0], "old")
 
     def test_auto_memory_section_is_stripped(self):
-        """自动成长段是**记忆** ✗ 不许进人格正文 ✓（2026-10-08 主人裁定 ✓）。"""
+        """自动成长段是**记忆** ✗ 不许进人格正文 ✓（2026-10-08 开发者裁定 ✓）。"""
         with tempfile.TemporaryDirectory() as tmp:
             db = os.path.join(tmp, "p.db")
             md = os.path.join(tmp, "p.md")
